@@ -14,19 +14,19 @@ read -e WP_SERVER_CHECK
 
 #Not Sure if -z check is neccesary in the next conditions
 
-if [[ -z $WP_SERVER_CHECK]] || [[$WP_SERVER_CHECK != "1"]] || [[$WP_SERVER_CHECK != "2"]] then;
+if [[ -z $WP_SERVER_CHECK]] || [[$WP_SERVER_CHECK != "1"]] || [[$WP_SERVER_CHECK != "2"]]; then
 	echo “please choose valid option (1 for Apache / 2 for Nginx)....”
 fi
 
 echo "Would you like to install EC2 - MYSQL (locally) (Press 1) or RDS MYSQL (Press 2)? "
 read -e WP_MYSQL
-if [[ -z $WP_MYSQL]] || [[$WP_MYSQL != "1"]] || [[$WP_MYSQL != "2"]] then;
+if [[ -z $WP_MYSQL]] || [[$WP_MYSQL != "1"]] || [[$WP_MYSQL != "2"]]; then
 	echo “please choose valid option (1 for EC2 MYSQL / 2 for RDS MYSQL)....”
 fi
 
 echo "Would you like to install Wordpress on File System (Press 1) or locally (Press 2)? "
 read -e WP_EFS
-if [[ -z $WP_EFS]] || [[$WP_EFS != "1"]] || [[$WP_EFS != "2"]] then;
+if [[ -z $WP_EFS]] || [[$WP_EFS != "1"]] || [[$WP_EFS != "2"]]; then
 	echo “please choose valid option (1 for EFS / 2 for locally installation)....”
 fi
 
@@ -455,7 +455,7 @@ if [ "$WP_EFS" == 1 ] ; then;
 
 	echo "Please enter mount path to get WP files from EFS"
 	read -e mpdir
-	echo "Please enter EFS url (Enter for existing EFS url)"
+	echo "Please enter EFS url (press Enter for existing EFS url)"
 	read -e EFS_URL	
 	EFS_URL=${EFS_URL:-fs-7ea24b07.efs.us-east-2.amazonaws.com}
 
@@ -480,7 +480,7 @@ if [ "$WP_EFS" == 1 ] ; then;
 	
 else
 	
-#Installing wordpresss
+#Installing wordpresss locally
 
 
 	echo "Installing WordPress"
@@ -500,7 +500,7 @@ else
 fi
 
 
-if [ "$MYSQL" == 1 ] ; then
+if [ "$MYSQL" == 1 ]; then
 	echo “Installing MYSQL locally....”
 	yum install -y mysql55-server php56-mysqlnd 
 	sudo service mysqld start
@@ -525,7 +525,7 @@ if [ "$MYSQL" == 1 ] ; then
 		dbtable=${dbtable:-wp_}
 		echo "Last chance - sure you want to run the mysql install? (y/n)"
 		read -e runsql
-			if [ "$runsql" == y ] ; then
+			if [ "$runsql" == y ]; then
 		echo "Setting up the database."
 		#login to MySQL, add database, add user and grant permissions
 		dbsetup="create database $dbname;GRANT ALL PRIVILEGES ON $dbname.* TO $dbuser@$mysqlhost IDENTIFIED BY '$dbpass';FLUSH PRIVILEGES;"
