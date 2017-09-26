@@ -14,7 +14,7 @@ read -e WP_SERVER_CHECK
 
 #Not Sure if -z check is neccesary in the next conditions
 
-if [[ -z $WP_SERVER_CHECK]] || [[$WP_SERVER_CHECK != "1"]] || [[$WP_SERVER_CHECK != "2"]]; then
+if [[ -z $WP_SERVER_CHECK ]] || [[ $WP_SERVER_CHECK != "1" ]] || [[ $WP_SERVER_CHECK != "2" ]]; then
 	echo “please choose valid option (1 for Apache / 2 for Nginx)....”
 fi
 
@@ -26,20 +26,20 @@ fi
 
 echo "Would you like to install Wordpress on File System (Press 1) or locally (Press 2)? "
 read -e WP_EFS
-if [[ -z $WP_EFS]] || [[$WP_EFS != "1"]] || [[$WP_EFS != "2"]]; then
+if [[ -z $WP_EFS ]] || [[ $WP_EFS != "1" ]] || [[ $WP_EFS != "2" ]]; then
 	echo “please choose valid option (1 for EFS / 2 for locally installation)....”
 fi
 
 
 echo "Would you like to Install Logz.io -  AWS analytics tools: (y/n) "
 read -e LOGZ_IO
-if [[$LOGZ_IO != "y" || $LOGZ_IO != "n"]]; then
+if [[ $LOGZ_IO != "y" || $LOGZ_IO != "n" ]]; then
 	echo “please choose valid option (y/n)....”
 fi
 
 echo "Would you like to Install DataDog-agent: (y/n) "
 read -e DATA_DOG
-if [[$LDATA_DOG != "y" || $LDATA_DOG != "n"]]; then
+if [[ $LDATA_DOG != "y" || $LDATA_DOG != "n" ]]; then
 	echo “please choose valid option (y/n)....”
 fi
 
@@ -52,7 +52,7 @@ fi
 yum -y update
 
 #Checking if the chosen web server (apache/nginx)already installed
-if [[ "$WP_SERVER_CHECK" == 1]] && [[! -f "/etc/init.d/httpd"]] ; then
+if [[ "$WP_SERVER_CHECK" == 1 ]] && [[ ! -f "/etc/init.d/httpd" ]] ; then
 	echo “Installing APACHE....”
 	yum install -y php56 php56-mysqlnd httpd
 	chkconfig httpd on
@@ -62,7 +62,7 @@ else
 
 fi
 	
-if [[ "$WP_SERVER_CHECK" == 2]] && [[! -f "/etc/init.d/nginx"]] ; then
+if [[ $WP_SERVER_CHECK == 2]] && [[ ! -f "/etc/init.d/nginx" ]] ; then
 
 	echo “Installing Nginx ....”
 		yum -y install nginx
@@ -451,7 +451,7 @@ EOF
 fi	
 
 
-if [ "$WP_EFS" == 1 ] ; then;
+if [ $WP_EFS == 1 ] then;
 
 	echo "Please enter mount path to get WP files from EFS"
 	read -e mpdir
