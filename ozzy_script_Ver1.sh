@@ -14,13 +14,13 @@ read -e WP_SERVER_CHECK
 
 #Not Sure if -z check is neccesary in the next conditions
 
-if [[ -z $WP_SERVER_CHECK ]] || [[ $WP_SERVER_CHECK != "1" ]] || [[ $WP_SERVER_CHECK != "2" ]]; then
+if [[ -z $WP_SERVER_CHECK ]] || [[ $WP_SERVER_CHECK != 1 ]] || [[ $WP_SERVER_CHECK != 2 ]]; then
 	echo “please choose valid option (1 for Apache / 2 for Nginx)....”
 fi
 
 echo "Would you like to install EC2 - MYSQL (locally) (Press 1) or RDS MYSQL (Press 2)? "
 read -e WP_MYSQL
-if [[ -z $WP_MYSQL]] || [[$WP_MYSQL != "1"]] || [[$WP_MYSQL != "2"]]; then
+if [[ -z $WP_MYSQL]] || [[$WP_MYSQL != 1 ]] || [[$WP_MYSQL != 2 ]]; then
 	echo “please choose valid option (1 for EC2 MYSQL / 2 for RDS MYSQL)....”
 fi
 
