@@ -1,6 +1,6 @@
 #! /bin/bash
 echo "Shell script to install Wordpress into an EC2 instance of Amazon AMI Linux."
-if ! [ $(id -u) == 0 ]; then
+if ! [[ $(id -u) == 0 ]]; then
    echo "Please be root before running!"
    exit 1
 fi
@@ -60,7 +60,7 @@ echo "Would you like to Install DataDog-agent: (y/n) "
 read -e DATA_DOG
 while [ 1 ]
 do
-    if [[ $LDATA_DOG == "y" || $LDATA_DOG == "n" ]]; then
+    if [[ $DATA_DOG == "y" || $DATA_DOG == "n" ]]; then
         echo "Ok. Datadog request has been recieved"
     break
     else
@@ -86,7 +86,7 @@ else
 
 fi
 
-if [[ $WP_SERVER_CHECK == 2]] && [[ ! -f "/etc/init.d/nginx" ]] ; then
+if [[ $WP_SERVER_CHECK == 2 ]] && [[ ! -f "/etc/init.d/nginx" ]] ; then
 
 	echo "Installing Nginx ...."
 		yum -y install nginx
@@ -163,7 +163,7 @@ EOF
 		echo "nginx already installed"
 
 fi
-if [[ "$WP_SERVER_CHECK" == 2 ]] && [[ ! -f "/etc/init.d/$php-fpm" ]] ; then
+if [[ "$WP_SERVER_CHECK" == 2 ]] && [[ ! -f "/etc/init.d/php-fpm" ]] ; then
 	yum -y install php-fpm php-mysql
 	service php-fpm start
 	chkconfig php-fpm on
@@ -190,7 +190,7 @@ else
 	echo "php-fpm already installed"
 fi
 
-if [ $WP_EFS == 1 ] then;
+if [ $WP_EFS == 1 ]; then
 
 	echo "Please enter mount path to get WP files from EFS"
 	read -e mpdir
@@ -200,7 +200,7 @@ if [ $WP_EFS == 1 ] then;
 	while [ 1 ]
 	do
 		MOUNTPOINT_LIST="$(cat /etc/fstab | awk -F' ' '{print $2}')"
-		if [[! -z $mpdir]] && [["$(echo $MOUNTPOINT_LIST | grep -ow "$mpdir")"]]; then
+		if [[ ! -z $mpdir ]] && [[ -z "$(echo $MOUNTPOINT_LIST | grep -ow "$mpdir")" ]]; then
 			mkdir $mpdir
 			#Create Mount folder and Connect to EFS
 			echo "$EFS_URL:/ $mpdir nfs4 nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 0 0" >> /etc/fstab
@@ -208,7 +208,7 @@ if [ $WP_EFS == 1 ] then;
 			#symoblic link sot to mount folder
 			mkdir -p /var/www/
 			sudo ln -s $mpdir /var/www/html
-		break
+		        break
 		else
 			echo "path $mpdir exists in fstab or no input was specified"
 		fi
@@ -248,30 +248,29 @@ if [ "$MYSQL" == 1 ]; then
 	read -es mysqlpass
 	echo 'MySQL Host (Enter for default "localhost"):'
 	read -e mysqlhost
-		mysqlhost=${mysqlhost:-localhost}
+	mysqlhost=${mysqlhost:-localhost}
 
-		echo "WP Database Name: "
-		read -e dbname
-		echo "WP Database User: "
-		read -e dbuser
-		echo "WP Database Password: "
-		read -s dbpass
-		echo 'WP Database Table Prefix [numbers, letters, and underscores only] (Enter for default "wp_"): '
-		read -e dbtable
-		dbtable=${dbtable:-wp_}
-		echo "Last chance - sure you want to run the mysql install? y/n"
-		read -e runsql
-			if [ "$runsql" == y ]; then
-		echo "Setting up the database."
+	echo "WP Database Name: "
+	read -e dbname
+	echo "WP Database User: "
+	read -e dbuser
+	echo "WP Database Password: "
+	read -s dbpass
+	echo 'WP Database Table Prefix [numbers, letters, and underscores only] (Enter for default "wp_"): '
+	read -e dbtable
+	dbtable=${dbtable:-wp_}
+	echo "Last chance - sure you want to run the mysql install? y/n"
+	read -e runsql
+	if [ "$runsql" == y ]; then
+	        echo "Setting up the database."
 		#login to MySQL, add database, add user and grant permissions
 		dbsetup="create database $dbname;GRANT ALL PRIVILEGES ON $dbname.* TO $dbuser@$mysqlhost IDENTIFIED BY '$dbpass';FLUSH PRIVILEGES;"
 		mysql -u $mysqluser -p$mysqlpass -e "$dbsetup"
-		if [ $? != "0" ]; then
+	        if [ $? != "0" ]; then
 			echo "[Error]: Database creation failed. Aborting."
 			exit 1
 		fi
-
-
+        fi
 else
 	echo "Please enter RDS url or Enter for existing RDS URL"
 	read -e RDS_URL
@@ -397,7 +396,7 @@ fi
 if [[ $DATA_DOG == "y" ]]; then
 	echo "Please insert DataDog API key or Enter for existing API key"
 	read -e DD_KEY
-	DD_API_KEY=${DD_KEY:-45cd1449066136f4fe1355f4fc343d6a}
+	export DD_API_KEY=${DD_KEY:-45cd1449066136f4fe1355f4fc343d6a}
     bash -c "$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/install_agent.sh)"
 else
 	echo "Ok, installation will continue without DataDog"
