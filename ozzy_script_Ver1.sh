@@ -19,10 +19,11 @@ do
     fi
 done
 
-echo "Would you like to install EC2 - MYSQL (locally) (Press 1) or RDS MYSQL (Press 2)? "
-read -e WP_MYSQLֿ
+
 while [ 1 ]
 do
+	echo "Would you like to install EC2 - MYSQL (locally) (Press 1) or RDS MYSQL (Press 2)? "
+	read -e WP_MYSQL
     if  [[ $WP_MYSQL == 1 ]] || [[ $WP_MYSQL == 2 ]]; then
          echo "Ok, DB will be installed"
          break
@@ -32,9 +33,10 @@ do
 done
 
 
+
+while [ 1 ]
 echo "Would you like to install Wordpress on File System (Press 1) or locally (Press 2)? "
 read -e WP_EFS
-while [ 1 ]
 do
     if  [[ $WP_EFS == 1 ]] || [[ $WP_EFS == 2 ]]; then
         echo "Ok Wordpress will be installed as per your request"
@@ -44,10 +46,11 @@ do
 fi
 done
 
-echo "Would you like to Install Logz.io -  AWS analytics tools: (y/n) "
-read -e LOGZ_IO
+
 while [ 1 ]
 do
+	echo "Would you like to Install Logz.io -  AWS analytics tools: (y/n) "
+	read -e LOGZ_IO
     if [[ $LOGZ_IO == "y" || $LOGZ_IO == "n" ]]; then
         echo "Ok, Logz.IO request has been recieved"
      break
@@ -56,9 +59,10 @@ do
     fi
 done
 
+
+while [ 1 ]
 echo "Would you like to Install DataDog-agent: (y/n) "
 read -e DATA_DOG
-while [ 1 ]
 do
     if [[ $DATA_DOG == "y" || $DATA_DOG == "n" ]]; then
         echo "Ok. Datadog request has been recieved"
