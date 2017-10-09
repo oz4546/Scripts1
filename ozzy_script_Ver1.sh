@@ -17,6 +17,7 @@ function check_if_1_2 {
 	
 }
 
+# functions to check if user choose yes or no
 function check_if_y_n {	
 
 	if [[ $1 == "y" || $1 == "n" ]]; then
