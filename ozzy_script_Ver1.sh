@@ -9,12 +9,11 @@ fi
 function decision {	
 
 	    if  [[ $1 == 1 ]] || [[ $1 == 2 ]] || [[ $1 == "y" ]] || [[ $1 == "n" ]]; then
-			return	0	
 	        echo "Ok, input is valid"
-	        break
+			return	0	
 	    else
+		    echo "please choose valid option ...."
 			return 1
-		    echo "please choose valid option (1/2/y/n)...."
 	    fi
 	
 }
@@ -24,11 +23,11 @@ function decision {
 function check_if_1_2 {	
 
 	    if  [[ $1 == 1 ]] || [[ $1 == 2 ]]; then
-	        echo "Ok, option $1 was chosen and will be installed"
+			echo "Ok, option $1 was chosen and will be installed"
 			return 0
-#	        break
+#		  	break
 	    else
-		    echo "please choose valid option (1/ 2)...."
+			echo "please choose valid option (1/ 2)...."
 			return 1
 	    fi
 	
@@ -62,16 +61,21 @@ while [ 1 ]
 	do
 		echo "Would you like to install Apache Web Server (Press 1) or Nginx Web Server (Press 2)? "
 		read -e WP_SERVER_CHECK
-		check_if_1_2 $WP_SERVER_CHECK
+#		if check_if_1_2 $WP_SERVER_CHECK; then 
+		if decision $WP_SERVER_CHECK; then 
+			break
+		fi
+			
+	done		
+		
 #	decision $WP_SERVER_CHECK
 	
-	done
 
 if [[ $WP_SERVER_CHECK == '1' ]]; then
 	echo "Apace Web Server will be installed, would you like to continue? (y/n)" 
 	read -e CONTINUE_Y_N
-	check_if_y_n $CONTINUE_Y_N
-#	decision $CONTINUE_Y_N
+#	check_if_y_n $CONTINUE_Y_N
+	decision $CONTINUE_Y_N
 
 	if [[ $CONTINUE_Y_N == 'n' ]]; then
 		echo " Installation will stop now "
@@ -82,8 +86,8 @@ fi
 if [[ $WP_SERVER_CHECK == '2' ]]; then
 	echo "nginx Web Server will be installed, would you like to continue? (y/n)" 
 	read -e CONTINUE_Y_N
-	check_if_y_n $CONTINUE_Y_N
-	#decision $CONTINUE_Y_N
+#	check_if_y_n $CONTINUE_Y_N
+	decision $CONTINUE_Y_N
 
 	if [[ $CONTINUE_Y_N == 'n' ]]; then
 		echo " Installation will stop now "
