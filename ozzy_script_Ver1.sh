@@ -5,14 +5,31 @@ if ! [[ $(id -u) == 0 ]]; then
    exit 1
 fi
 
+
+function decision {	
+
+	    if  [[ $1 == 1 ]] || [[ $1 == 2 ]] || [[ $1 == "y" ]] || [[ $1 == "n" ]]; then
+			return	0	
+	        echo "Ok, input is valid"
+	        break
+	    else
+			return 1
+		    echo "please choose valid option (1/2/y/n)...."
+	    fi
+	
+}
+
+
 # function to check whether user choose 1 or 2
 function check_if_1_2 {	
 
 	    if  [[ $1 == 1 ]] || [[ $1 == 2 ]]; then
 	        echo "Ok, option $1 was chosen and will be installed"
-	        break
+			return 0
+#	        break
 	    else
 		    echo "please choose valid option (1/ 2)...."
+			return 1
 	    fi
 	
 }
@@ -22,7 +39,7 @@ function check_if_y_n {
 
 	if [[ $1 == "y" || $1 == "n" ]]; then
     	echo "Ok, request $1 has been recieved"
- 	break
+# 	break
 	else
     echo "please choose valid option (y/n)...."
 fi
@@ -42,45 +59,70 @@ fi
 
 
 while [ 1 ]
-do
-	echo "Would you like to install Apache Web Server (Press 1) or Nginx Web Server (Press 2)? "
-	read -e WP_SERVER_CHECK
-	check_if_1_2 $WP_SERVER_CHECK
-done
+	do
+		echo "Would you like to install Apache Web Server (Press 1) or Nginx Web Server (Press 2)? "
+		read -e WP_SERVER_CHECK
+		check_if_1_2 $WP_SERVER_CHECK
+#	decision $WP_SERVER_CHECK
+	
+	done
+
+if [[ $WP_SERVER_CHECK == '1' ]]; then
+	echo "Apace Web Server will be installed, would you like to continue? (y/n)" 
+	read -e CONTINUE_Y_N
+	check_if_y_n $CONTINUE_Y_N
+#	decision $CONTINUE_Y_N
+
+	if [[ $CONTINUE_Y_N == 'n' ]]; then
+		echo " Installation will stop now "
+		exit 1	
+	fi
+fi
+	
+if [[ $WP_SERVER_CHECK == '2' ]]; then
+	echo "nginx Web Server will be installed, would you like to continue? (y/n)" 
+	read -e CONTINUE_Y_N
+	check_if_y_n $CONTINUE_Y_N
+	#decision $CONTINUE_Y_N
+
+	if [[ $CONTINUE_Y_N == 'n' ]]; then
+		echo " Installation will stop now "
+		exit 1	
+	fi
+fi
+
+while [ 1 ]
+	do
+		echo "Would you like to install EC2 - MYSQL (locally) (Press 1) or RDS MYSQL (Press 2)? "
+		read -e WP_MYSQL
+		check_if_1_2 $WP_MYSQL
+
+	done
+
 
 
 while [ 1 ]
-do
-	echo "Would you like to install EC2 - MYSQL (locally) (Press 1) or RDS MYSQL (Press 2)? "
-	read -e WP_MYSQL
-	check_if_1_2 $WP_MYSQL
-
-done
-
+	do
+		echo "Would you like to install Wordpress on File System (Press 1) or locally (Press 2)? "
+		read -e WP_EFS
+		check_if_1_2 $WP_EFS
+	done
 
 
 while [ 1 ]
-do
-	echo "Would you like to install Wordpress on File System (Press 1) or locally (Press 2)? "
-	read -e WP_EFS
-	check_if_1_2 $WP_EFS
-done
+	do
+		echo "Would you like to Install Logz.io -  AWS analytics tools: (y/n) "
+		read -e LOGZ_IO
+		check_if_y_n $LOGZ_IO
+	done
 
 
 while [ 1 ]
-do
-	echo "Would you like to Install Logz.io -  AWS analytics tools: (y/n) "
-	read -e LOGZ_IO
-	check_if_y_n $LOGZ_IO
-done
-
-
-while [ 1 ]
-do
-	echo "Would you like to Install DataDog-agent: (y/n) "
-	read -e DATA_DOG
-	check_if_y_n $DATA_DOG
-done
+	do
+		echo "Would you like to Install DataDog-agent: (y/n) "
+		read -e DATA_DOG
+		check_if_y_n $DATA_DOG
+	done
 
 
 	echo "============================================"
