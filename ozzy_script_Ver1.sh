@@ -1,48 +1,31 @@
 #! /bin/bash
+
+WP_MY_SQL=""
+
 echo "Shell script to install Wordpress into an EC2 instance of Amazon AMI Linux."
 if ! [[ $(id -u) == 0 ]]; then
    echo "Please be root before running!"
    exit 1
 fi
-
-
+RESULT=$(decision "y" "n")
+RETURN_VALUE=$?
+# decision - input: $1 variable name, $2 first value, $3 second value
 function decision {	
-
-	    if  [[ $1 == 1 ]] || [[ $1 == 2 ]] || [[ $1 == "y" ]] || [[ $1 == "n" ]]; then
+#local USER_SENT_VARIABLE=$1
+	local TEMP_VARIABLE
+	while [ 1 ]
+	do
+		read -e TEMP_VARIABLE
+	    if  [[ $TEMP_VARIABLE == $1 ]] || [[ $TEMP_VARIABLE == $2 ]]; then
 	        echo "Ok, input is valid"
-			return	0	
+			break	
 	    else
-		    echo "please choose valid option ...."
-			return 1
+		    echo "please choose valid option - $1 or $2"
 	    fi
-	
-}
-
-
-# function to check whether user choose 1 or 2
-function check_if_1_2 {	
-
-	    if  [[ $1 == 1 ]] || [[ $1 == 2 ]]; then
-			echo "Ok, option $1 was chosen and will be installed"
-			return 0
-#		  	break
-	    else
-			echo "please choose valid option (1/ 2)...."
-			return 1
-	    fi
-	
-}
-
-# functions to check if user choose yes or no
-function check_if_y_n {	
-
-	if [[ $1 == "y" || $1 == "n" ]]; then
-    	echo "Ok, request $1 has been recieved"
-# 	break
-	else
-    echo "please choose valid option (y/n)...."
-fi
-	
+	done
+	#eval $USER_SENT_VARIABLE=$TEMP_VARIABLE
+	echo -e "$TEMP_VARIABLE"
+	return 0
 }
 
 function check_db_user_pass {	
@@ -56,10 +39,21 @@ fi
 	
 }
 
+function path_check {	
+
+	    if [[ -d "$1" ]] && [[ $1 =~ ^[A-Za-z0-9#$+*]{2,}$ ]]; then;
+	        echo "Ok, input is valid"
+			return	0	
+	    else
+		    echo "please enter valid path ...."
+			return 1
+	    fi
+	
+}
 
 while [ 1 ]
 	do
-		echo "Would you like to install Apache Web Server (Press 1) or Nginx Web Server (Press 2)? "
+		echo "Would you like to install Apache Web Server (Press 1) or Nginx Web Server (Press 2)?"
 		read -e WP_SERVER_CHECK
 #		if check_if_1_2 $WP_SERVER_CHECK; then 
 		if decision $WP_SERVER_CHECK; then 
@@ -71,37 +65,12 @@ while [ 1 ]
 #	decision $WP_SERVER_CHECK
 	
 
-if [[ $WP_SERVER_CHECK == '1' ]]; then
-	echo "Apace Web Server will be installed, would you like to continue? (y/n)" 
-	read -e CONTINUE_Y_N
-#	check_if_y_n $CONTINUE_Y_N
-	decision $CONTINUE_Y_N
 
-	if [[ $CONTINUE_Y_N == 'n' ]]; then
-		echo " Installation will stop now "
-		exit 1	
-	fi
-fi
-	
-if [[ $WP_SERVER_CHECK == '2' ]]; then
-	echo "nginx Web Server will be installed, would you like to continue? (y/n)" 
-	read -e CONTINUE_Y_N
-#	check_if_y_n $CONTINUE_Y_N
-	decision $CONTINUE_Y_N
+echo "Would you like to install EC2 - MYSQL (locally) (Press 1) or RDS MYSQL (Press 2)? "
+WP_MY_SQL=$(decision "1" "2" )
 
-	if [[ $CONTINUE_Y_N == 'n' ]]; then
-		echo " Installation will stop now "
-		exit 1	
-	fi
-fi
+#change all the user inputs from 1/2 y/n to text. e.g - nginx/apache - mysql local/remote
 
-while [ 1 ]
-	do
-		echo "Would you like to install EC2 - MYSQL (locally) (Press 1) or RDS MYSQL (Press 2)? "
-		read -e WP_MYSQL
-		check_if_1_2 $WP_MYSQL
-
-	done
 
 
 
@@ -255,26 +224,26 @@ if [ $WP_EFS == 1 ]; then
 
 
 	while [ 1 ]
-	echo "Please enter mount path to get WP files from EFS"
-	read -e mpdir
-	echo "Please enter EFS url (press Enter for existing EFS url)"
-	read -e EFS_URL
-	EFS_URL="${EFS_URL:-fs-7ea24b07.efs.us-east-2.amazonaws.com}"
 	do
+		echo 
+		read -e mpdir "Please enter mount path to get WP files from EFS"
+		echo "Please enter EFS url (press Enter for existing EFS url)"
+		read -e EFS_ENDPOINT
+		EFS_ENDPOINT="${EFS_ENDPOINT:-fs-7ea24b07.efs.us-east-2.amazonaws.com}"
 		MOUNTPOINT_LIST="$(cat /etc/fstab | awk -F' ' '{print $2}')"
 		if [[ ! -z $mpdir ]] && [[ -z "$(echo $MOUNTPOINT_LIST | grep -ow "$mpdir")" ]]; then
-			mkdir $mpdir
-			#Create Mount folder and Connect to EFS
-			echo "$EFS_URL:/ $mpdir nfs4 nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 0 0" >> /etc/fstab
-			mount -a -t nfs4
-			#symoblic link sot to mount folder
-			mkdir -p /var/www/
-			sudo ln -s $mpdir /var/www/html
 		        break
 		else
 			echo "path $mpdir exists in fstab or no input was specified"
 		fi
 	done
+	mkdir $mpdir
+	#Create Mount folder and Connect to EFS
+	echo "$EFS_ENDPOINT:/ $mpdir nfs4 nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 0 0" >> /etc/fstab
+	mount -a -t nfs4
+	#symoblic link sot to mount folder
+	mkdir -p /var/www/
+	sudo ln -s $mpdir /var/www/html
 
 else
 
@@ -373,92 +342,57 @@ if [[ $LOGZ_IO == "y" ]]; then
 		#sudo cp COMODORSADomainValidationSecureServerCA.crt /etc/pki/tls/certs/
 		mv -v /etc/filebeat/filebeat.yml /etc/filebeat/filebeat_original.yml
 
-		if [ "$WP_SERVER_CHECK" == 2 ] ; then
-
-			#EDIT FILEBEAT CONF FILE - /etc/filebeat/filebeat.yml - nginx Logz
-
-			cat > /etc/filebeat/filebeat.yml <<EOF
-			############################# Filebeat #####################################
-			filebeat:
-			  prospectors:
-			    -
-			      paths:
-			        - /var/log/nginx/access.log
-			      fields:
-			        logzio_codec: plain
-			        token: $LOGZ_IO_TOKEN
-			      fields_under_root: true
-			      ignore_older: 3h
-			      document_type: nginx
-			    -
-			      paths:
-			        - /var/log/nginx/error.log
-			      fields:
-			        logzio_codec: plain
-			        token: $LOGZ_IO_TOKEN
-			      fields_under_root: true
-			      ignore_older: 3h
-			      document_type: nginx-error
-			  registry_file: /var/lib/filebeat/registry
-			############################# Output ##########################################
-			output:
-			  logstash:
-			    hosts: ["listener.logz.io:5015"]
-
-			#########  The below configuration is used for Filebeat 1.3 or lower
-			    tls:
-			      certificate_authorities: ['/etc/pki/tls/certs/COMODORSADomainValidationSecureServerCA.crt']
-
-			########  The below configuration is used for Filebeat 5.0 or higher
-			    ssl:
-			      certificate_authorities: ['/etc/pki/tls/certs/COMODORSADomainValidationSecureServerCA.crt']
+		cat > /etc/filebeat/filebeat.yml << EOF
+		############################# Filebeat #####################################
+		filebeat:
+		  prospectors:
+		    -
+		      paths:
+		        - <ACCESS_PATH>
+		      fields:
+		        logzio_codec: plain
+		        token:<TOKEN>
+		      fields_under_root: true
+		      ignore_older: 3h
+		      document_type: <DOC_TYPE_ACCESS>
+		    -
+		      paths:
+		        - <ERROR_PATH>
+		      fields:
+		        logzio_codec: plain
+		        token:<TOKEN>
+		      fields_under_root: true
+		      ignore_older: 3h
+		      document_type: <DOC_TYPE_ERROR>
+		  registry_file: /var/lib/filebeat/registry
+		############################# Output ##########################################
+		output:
+		  logstash:
+		    hosts: ["listener.logz.io:5015"]
+			
+		########  The below configuration is used for Filebeat 5.0 or higher
+		    ssl:
+		      certificate_authorities: ['/etc/pki/tls/certs/COMODORSADomainValidationSecureServerCA.crt']
 
 
-EOF
-		else
-			#EDIT FILEBEAT CONF FILE - /etc/filebeat/filebeat.yml - Apache Logz
+EOF			  			  
+if [ "$WP_SERVER_CHECK" == "apache" ]; then
 
-			mv -v /etc/filebeat/filebeat.yml /etc/filebeat/filebeat_original.yml
-			cat > /etc/filebeat/filebeat.yml <<EOF
-			############################# Filebeat #####################################
-			filebeat:
-			  prospectors:
-			    -
-			      paths:
-			        - /var/log/apache2/access.log
-			      fields:
-			        logzio_codec: plain
-			        token: $LOGZ_IO_TOKEN
-			      fields_under_root: true
-			      ignore_older: 3h
-			      document_type: apache
-			    -
-			      paths:
-			        - /var/log/apache2/error.log
-			      fields:
-			        logzio_codec: plain
-			        token: $LOGZ_IO_TOKEN
-			      fields_under_root: true
-			      ignore_older: 3h
-			      document_type: apache-error
-			  registry_file: /var/lib/filebeat/registry
-			############################# Output ##########################################
-			output:
-			  logstash:
-			    hosts: ["listener.logz.io:5015"]
-
-			#########  The below configuration is used for Filebeat 1.3 or lower
-			    tls:
-			      certificate_authorities: ['/etc/pki/tls/certs/COMODORSADomainValidationSecureServerCA.crt']
-
-			########  The below configuration is used for Filebeat 5.0 or higher
-			    ssl:
-			      certificate_authorities: ['/etc/pki/tls/certs/COMODORSADomainValidationSecureServerCA.crt']
-EOF
-fi
-
-
+			#EDIT FILEBEAT CONF FILE - /etc/filebeat/filebeat.yml - nginx Log			  
+			sed -ie "s/<ACCESS_PATH>/ \/var\/log\/apache2\/access\.log /g" /etc/filebeat/filebeat.yml
+			sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml 
+			sed -ie "s/<DOC_TYPE_ACCESS>/apache/g" /etc/filebeat/filebeat.yml 	  
+			sed -ie "s/<ERROR_PATH>//var/log/apache2/error.log/g" /etc/filebeat/filebeat.yml 	  
+			sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml
+			sed -ie "s/<DOC_TYPE_ERROR>/apache_error/g" /etc/filebeat/filebeat.yml 	  		
 else
+	sed -ie "s/<ACCESS_PATH>/ \/var\/log\/apache2\/access.log /g" /etc/filebeat/filebeat.yml
+	sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml 
+	sed -ie "s/<DOC_TYPE_ACCESS>/apache/g" /etc/filebeat/filebeat.yml 	  
+	sed -ie "s/<ERROR_PATH>/ \/var\/log\/nginx\/error\.log/g" /etc/filebeat/filebeat.yml 	  
+	sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml
+	sed -ie "s/<DOC_TYPE_ERROR>/apache_error/g" /etc/filebeat/filebeat.yml 	
+	
         echo "Ok, installation will continue without Logz.IO"
 fi
 
@@ -475,3 +409,4 @@ else
 	echo "Ok, installation will continue without DataDog"
     echo "Ready, go to http://<your ec2 url>/blog and enter the blog info to finish the WP installation."
 fi
+rm -f /tmp/my-pid
