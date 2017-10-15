@@ -7,10 +7,13 @@ if ! [[ $(id -u) == 0 ]]; then
    echo "Please be root before running!"
    exit 1
 fi
-RESULT=$(decision "y" "n")
-RETURN_VALUE=$?
+
+#RESULT=$(decision "y" "n")
+#RETURN_VALUE=$?
+
 # decision - input: $1 variable name, $2 first value, $3 second value
 function decision {	
+
 #local USER_SENT_VARIABLE=$1
 	local TEMP_VARIABLE
 	while [ 1 ]
@@ -41,7 +44,7 @@ fi
 
 function path_check {	
 
-	    if [[ -d "$1" ]] && [[ $1 =~ ^[A-Za-z0-9#$+*]{2,}$ ]]; then;
+	    if [[ -d "$1" ]] && [[ $1 =~ ^[A-Za-z0-9#$+*]{2,}$ ]]; then
 	        echo "Ok, input is valid"
 			return	0	
 	    else
@@ -51,56 +54,43 @@ function path_check {
 	
 }
 
-while [ 1 ]
-	do
-		echo "Would you like to install Apache Web Server (Press 1) or Nginx Web Server (Press 2)?"
-		read -e WP_SERVER_CHECK
-#		if check_if_1_2 $WP_SERVER_CHECK; then 
-		if decision $WP_SERVER_CHECK; then 
-			break
-		fi
+
+echo "Would you like to install Apache Web Server (type 'apache') or Nginx Web Server (type 'nginx')?"
+WP_SERVER_CHECK=$(decision "nginx" "apache")
 			
-	done		
-		
-#	decision $WP_SERVER_CHECK
+
+
+echo "Would you like to install EC2 - MYSQL (type 'local) or RDS MYSQL (type 'rds')? "
+WP_MY_SQL=$(decision "local" "rds" )
+
+
+
+echo "Would you like to install Wordpress on File System (type 'fs') or locally (type 'local')? "
+WP_EFS=$(decision "fs" "local" )
+
+
+
+echo "Would you like to Install Logz.io -  AWS analytics tools: (y/n) "
+LOGZ_IO=$(decision "y" "n" )
+
+
+
+echo "Would you like to Install DataDog-agent: (y/n) "
+DATADOG=$(decision "y" "n" )
+
+
+echo "The following application will be installed: $1($WP_SERVER_CHECK, $WP_MY_SQL, $WP_EFS, $LOGZ_IO, $DATADOG) would you like to continue? (y/n)"
+CONTINUE=$(decision "y" "n" )
+
+if [[$CONTINUE == "n"]]; then
+	exit1
+else
 	
-
-
-echo "Would you like to install EC2 - MYSQL (locally) (Press 1) or RDS MYSQL (Press 2)? "
-WP_MY_SQL=$(decision "1" "2" )
-
-#change all the user inputs from 1/2 y/n to text. e.g - nginx/apache - mysql local/remote
-
-
-
-
-while [ 1 ]
-	do
-		echo "Would you like to install Wordpress on File System (Press 1) or locally (Press 2)? "
-		read -e WP_EFS
-		check_if_1_2 $WP_EFS
-	done
-
-
-while [ 1 ]
-	do
-		echo "Would you like to Install Logz.io -  AWS analytics tools: (y/n) "
-		read -e LOGZ_IO
-		check_if_y_n $LOGZ_IO
-	done
-
-
-while [ 1 ]
-	do
-		echo "Would you like to Install DataDog-agent: (y/n) "
-		read -e DATA_DOG
-		check_if_y_n $DATA_DOG
-	done
-
 
 	echo "============================================"
 	echo "Installing . . . . . . . . . . . . . . . . "
 	echo "============================================"
+
 
 # lets yum update
 yum -y update
@@ -409,4 +399,5 @@ else
 	echo "Ok, installation will continue without DataDog"
     echo "Ready, go to http://<your ec2 url>/blog and enter the blog info to finish the WP installation."
 fi
-rm -f /tmp/my-pid
+
+
