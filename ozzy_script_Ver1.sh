@@ -1,6 +1,5 @@
 #! /bin/bash
 
-WP_MY_SQL=""
 
 echo "Shell script to install Wordpress into an EC2 instance of Amazon AMI Linux."
 if ! [[ $(id -u) == 0 ]]; then
