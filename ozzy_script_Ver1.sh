@@ -14,7 +14,7 @@ fi
 function decision {	
 
 #local USER_SENT_VARIABLE=$1
-	local TEMP_VARIABLE
+local TEMP_VARIABLE
 	while [ 1 ]
 	do
 		read -e TEMP_VARIABLE
@@ -43,13 +43,13 @@ fi
 
 function path_check {	
 
-	    if [[ -d "$1" ]] && [[ $1 =~ ^[A-Za-z0-9#$+*]{2,}$ ]]; then
-	        echo "Ok, input is valid"
-			return	0	
-	    else
-		    echo "please enter valid path ...."
-			return 1
-	    fi
+if [[ -d "$1" ]] && [[ $1 =~ ^[A-Za-z0-9#$+*]{2,}$ ]]; then
+	echo "Ok, input is valid"
+	return	0	
+else
+	echo "please enter valid path ...."
+	return 1
+fi
 	
 }
 
@@ -95,7 +95,7 @@ else
 yum -y update
 
 #Checking if the chosen web server (apache/nginx)already installed
-if [[ "$WP_SERVER_CHECK" == 1 ]] && [[ ! -f "/etc/init.d/httpd" ]]; then
+if [[ "$WP_SERVER_CHECK" == ״apache"" ]] && [[ ! -f "/etc/init.d/httpd" ]]; then
 	echo "Installing APACHE...."
 	yum install -y php56 php56-mysqlnd httpd
 	chkconfig httpd on
@@ -105,7 +105,7 @@ else
 
 fi
 
-if [[ $WP_SERVER_CHECK == 2 ]] && [[ ! -f "/etc/init.d/nginx" ]] ; then
+if [[ $WP_SERVER_CHECK == "nginx" ]] && [[ ! -f "/etc/init.d/nginx" ]] ; then
 
 	echo "Installing Nginx ...."
 		yum -y install nginx
@@ -182,6 +182,8 @@ EOF
 		echo "nginx already installed"
 
 fi
+
+
 if [[ "$WP_SERVER_CHECK" == 2 ]] && [[ ! -f "/etc/init.d/php-fpm" ]] ; then
 	yum -y install php-fpm php-mysql
 	service php-fpm start
@@ -209,8 +211,7 @@ else
 	echo "php-fpm already installed"
 fi
 
-if [ $WP_EFS == 1 ]; then
-
+if [ $WP_EFS == "fs" ]; then
 
 	while [ 1 ]
 	do
@@ -256,7 +257,7 @@ else
 fi
 
 
-if [ "$MYSQL" == 1 ]; then
+if [ "$MYSQL" == "local" ]; then
 	echo "Installing MYSQL locally...."
 	yum install -y mysql55-server php56-mysqlnd
 	sudo service mysqld start
@@ -368,22 +369,24 @@ EOF
 if [ "$WP_SERVER_CHECK" == "apache" ]; then
 
 			#EDIT FILEBEAT CONF FILE - /etc/filebeat/filebeat.yml - nginx Log			  
-			sed -ie "s/<ACCESS_PATH>/ \/var\/log\/apache2\/access\.log /g" /etc/filebeat/filebeat.yml
-			sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml 
-			sed -ie "s/<DOC_TYPE_ACCESS>/apache/g" /etc/filebeat/filebeat.yml 	  
-			sed -ie "s/<ERROR_PATH>//var/log/apache2/error.log/g" /etc/filebeat/filebeat.yml 	  
-			sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml
-			sed -ie "s/<DOC_TYPE_ERROR>/apache_error/g" /etc/filebeat/filebeat.yml 	  		
-else
-	sed -ie "s/<ACCESS_PATH>/ \/var\/log\/apache2\/access.log /g" /etc/filebeat/filebeat.yml
+	sed -ie "s/<ACCESS_PATH>/ \/var\/log\/apache2\/access\.log /g" /etc/filebeat/filebeat.yml
 	sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml 
 	sed -ie "s/<DOC_TYPE_ACCESS>/apache/g" /etc/filebeat/filebeat.yml 	  
+	sed -ie "s/<ERROR_PATH>//var/log/apache2/error.log/g" /etc/filebeat/filebeat.yml 	  
+	sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml
+	sed -ie "s/<DOC_TYPE_ERROR>/apache_error/g" /etc/filebeat/filebeat.yml 	  		
+else
+	sed -ie "s/<ACCESS_PATH>/ \/var/log/nginx/error.log /g" /etc/filebeat/filebeat.yml
+	sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml 
+	sed -ie "s/<DOC_TYPE_ACCESS>/nginx-access/g" /etc/filebeat/filebeat.yml 	  
 	sed -ie "s/<ERROR_PATH>/ \/var\/log\/nginx\/error\.log/g" /etc/filebeat/filebeat.yml 	  
 	sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml
-	sed -ie "s/<DOC_TYPE_ERROR>/apache_error/g" /etc/filebeat/filebeat.yml 	
+	sed -ie "s/<DOC_TYPE_ERROR>/nginx-error/g" /etc/filebeat/filebeat.yml 	
+fi
+
+if [[ $LOGZ_IO == "n" ]]; then
 	
         echo "Ok, installation will continue without Logz.IO"
-fi
 
 
 
