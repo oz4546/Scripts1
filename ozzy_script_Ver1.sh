@@ -78,7 +78,49 @@ echo "Would you like to Install DataDog-agent: (y/n) "
 DATADOG=$(decision "y" "n" )
 
 
+echo "============================================"
+echo "==============SUMMARY ======================"
+echo "============================================"
+
 echo "The following application will be installed: $1($WP_SERVER_CHECK, $WP_MY_SQL, $WP_EFS, $LOGZ_IO, $DATADOG) would you like to continue? (y/n)"
+
+if [[ "$WP_SERVER_CHECK" == "apache" ]]; then
+	echo "Apache Web Server will be installed"
+else
+	echo "nginx Web Server will be installed"
+	
+fi
+
+if [[ "$WP_MY_SQL" == "local" ]]; then
+	echo "MY SQL will be installed locally"
+else
+	echo "RDS will be installed"
+	
+fi
+
+
+
+if [[ "$WP_EFS" == "fs" ]]; then
+	echo "Wordpress will be installed on EFS (Amazon Elastic File System)"
+else
+	echo "Wordpress will be installed locally"
+	
+fi
+
+if [[ "$LOGZ_IO" == "y" ]]; then
+	echo "Logz.IO will be installed"
+else
+	echo "installation will continue without Logz.IO"
+	
+fi
+
+if [[ "$DATADOG" == "y" ]]; then
+	echo "Datadog be installed"
+else
+	echo "installation will continue without DATADOG"
+	
+fi
+
 CONTINUE=$(decision "y" "n" )
 
 if [[$CONTINUE == "n"]]; then
