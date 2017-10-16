@@ -22,7 +22,7 @@ local TEMP_VARIABLE
 	        echo "Ok, input is valid"
 			break	
 	    else
-		    echo "please choose valid option - $1 or $2"
+		    echo please choose valid option - $1 or $2 >&2
 	    fi
 	done
 	#eval $USER_SENT_VARIABLE=$TEMP_VARIABLE
