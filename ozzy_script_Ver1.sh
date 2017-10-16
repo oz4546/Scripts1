@@ -444,4 +444,4 @@ else
     echo "Ready, go to http://<your ec2 url>/blog and enter the blog info to finish the WP installation."
 fi
 
-
+fi
