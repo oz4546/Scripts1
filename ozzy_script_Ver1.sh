@@ -13,20 +13,20 @@ fi
 # decision - input: $1 variable name, $2 first value, $3 second value
 function decision {	
 
-#local USER_SENT_VARIABLE=$1
-local TEMP_VARIABLE
+local USER_SENT_VARIABLE=$1
+#local TEMP_VARIABLE
 	while [ 1 ]
 	do
 		read -e TEMP_VARIABLE
 	    if  [[ $TEMP_VARIABLE == $1 ]] || [[ $TEMP_VARIABLE == $2 ]]; then
-	        echo "Ok, input is valid"
+#	        echo "Ok, input is valid"
+			echo -e "$TEMP_VARIABLE"
 			break	
 	    else
 		    echo please choose valid option - $1 or $2 >&2
 	    fi
 	done
 	#eval $USER_SENT_VARIABLE=$TEMP_VARIABLE
-	echo -e "$TEMP_VARIABLE"
 	return 0
 }
 
@@ -69,9 +69,8 @@ WP_EFS=$(decision "fs" "local" )
 
 
 
-echo "Would you like to Install Logz.io -  AWS analytics tools: (y/n) "
-LOGZ_IO=$(decision "y" "n" )
-
+echo "Would you like to Install Logz.io (type 'logz.io) or continue without it (type 'no logz') "
+LOGZ_IO=$(decision "logz.io" "no logz" )
 
 
 echo "Would you like to Install DataDog-agent: (y/n) "
@@ -82,19 +81,19 @@ echo "============================================"
 echo "==============SUMMARY ======================"
 echo "============================================"
 
-echo "The following application will be installed: $1($WP_SERVER_CHECK, $WP_MY_SQL, $WP_EFS, $LOGZ_IO, $DATADOG) would you like to continue? (y/n)"
+echo "The following applications will be installed:"
 
 if [[ "$WP_SERVER_CHECK" == "apache" ]]; then
-	echo "Apache Web Server will be installed"
+	echo "Apache Web Server"
 else
-	echo "nginx Web Server will be installed"
+	echo "nginx Web Server"
 	
 fi
 
 if [[ "$WP_MY_SQL" == "local" ]]; then
-	echo "MY SQL will be installed locally"
+	echo "local MY SQL"
 else
-	echo "RDS will be installed"
+	echo "RDS"
 	
 fi
 
@@ -107,58 +106,83 @@ else
 	
 fi
 
-if [[ "$LOGZ_IO" == "y" ]]; then
-	echo "Logz.IO will be installed"
+if [[ "$LOGZ_IO" == "logz.io" ]]; then
+	echo "Logz.IO will be installed"		
 else
-	echo "installation will continue without Logz.IO"
-	
+	echo "Logz.IO won't be installed"	
 fi
 
 if [[ "$DATADOG" == "y" ]]; then
-	echo "Datadog be installed"
+	echo "Datadog will be installed"
 else
-	echo "installation will continue without DATADOG"
+	echo "Datadog wont be installed"
 	
 fi
 
+echo "Would you like to continue with the installation? (y/n) "
 CONTINUE=$(decision "y" "n" )
-
-if [[$CONTINUE == "n"]]; then
-	exit1
+if [[ "$CONTINUE" == "n" ]]; then
+	exit 1
 else
 	
 
 	echo "============================================"
 	echo "Installing . . . . . . . . . . . . . . . . "
 	echo "============================================"
+fi
 
 
 # lets yum update
 yum -y update
 
 #Checking if the chosen web server (apache/nginx)already installed
-if [[ "$WP_SERVER_CHECK" == ״apache"" ]] && [[ ! -f "/etc/init.d/httpd" ]]; then
+if [[ "$WP_SERVER_CHECK" == "apache" ]]; then #&& [[ ! -f "/etc/init.d/httpd" ]]; then
 	echo "Installing APACHE...."
-	yum install -y php56 php56-mysqlnd httpd
+	yum install -y php56
+	yum install -y php56-mysqlnd
+	yum install -y httpd
+	yum install -y php-mysql
 	chkconfig httpd on
-	service start httpd
+	service httpd start
+	
+	sed 's/.*DirectoryIndex.*/DirectoryIndex index.html index.php/' /etc/httpd/conf/httpd.conf     
+
+
+
 else
 	echo "Installing nginx or Apache already installed"
 
 fi
 
-if [[ $WP_SERVER_CHECK == "nginx" ]] && [[ ! -f "/etc/init.d/nginx" ]] ; then
+if [[ $WP_SERVER_CHECK == "nginx" ]]; then # && [[ ! -f "/etc/init.d/nginx" ]] ; then
 
 	echo "Installing Nginx ...."
 		yum -y install nginx
 		service nginx start
 		chkconfig nginx on
-
+		yum -y install php-fpm php-devel php-mysql php-pdo php-pear php-mbstring php-cli php-odbc php-imap php-gd php-xml php-soap
 		# NEED TO EDIT CONF FILES of NGINX/PHP-FPM
+		service php-fpm start
+		chkconfig php-fpm on
 
+		     # NEED TO EDIT CONF FILES PHP-FPM
+		mv -v /etc/php-fpm.d/www.conf /etc/php-fpm.d/www.conf_original
+cat > /etc/php-fpm.d/www.conf <<EOF
+[www]
+listen = /var/run/php-fpm/php-fpm.sock
+listen.owner = nginx
+listen.group = nginx
+listen.mode = 0664
+user = nginx
+group = nginx
+EOF
+
+		#else
+		#	echo "php-fpm already installed"
 		mv -v /etc/nginx/nginx.conf /etc/nginx/nginx-original.conf
 
-		cat > /etc/nginx/conf.d/nginx.conf <<"EOF"
+cat > /etc/nginx/nginx.conf <<EOF
+		
 user nginx;
 worker_processes auto;
 error_log /var/log/nginx/error.log;
@@ -220,45 +244,40 @@ http {
 
 EOF
 
-	else
-		echo "nginx already installed"
+#	else
+#		echo "nginx already installed"
 
 fi
 
 
-if [[ "$WP_SERVER_CHECK" == 2 ]] && [[ ! -f "/etc/init.d/php-fpm" ]] ; then
-	yum -y install php-fpm php-mysql
-	service php-fpm start
-	chkconfig php-fpm on
+#if [[ "$WP_SERVER_CHECK" == "nginx" ]]; then # && [[ ! -f "/etc/init.d/php-fpm" ]]; then
+#	yum -y install php-fpm php-mysql
+#	service php-fpm start
+#	chkconfig php-fpm on
 
      # NEED TO EDIT CONF FILES PHP-FPM
-    mv -v /etc/php-fpm.d/www.conf /etc/php-fpm.d/www.conf_original
-    cat > /etc/php-fpm.d/www.conf <<EOF
-[www]
-listen = 127.0.0.1:9000
-listen.allowed_clients = 127.0.0.1
-user = nginx
-group = nginx
-pm = dynamic
-pm.max_children = 50
-pm.start_servers = 5
-pm.min_spare_servers = 5
-pm.max_spare_servers = 35
-slowlog = /var/log/php-fpm/www-slow.log
-php_admin_value[error_log] = /var/log/php-fpm/www-error.log
-php_admin_flag[log_errors] = on
-EOF
+#    mv -v /etc/php-fpm.d/www.conf /etc/php-fpm.d/www.conf_original
+#cat > /etc/php-fpm.d/www.conf <<EOF
+#[www]
+#listen = /var/run/php-fpm/php-fpm.sock
+#listen.owner = nginx
+#listen.group = nginx
+#listen.mode = 0664
+#user = nginx
+#group = nginx
+#EOF
 
-else
-	echo "php-fpm already installed"
-fi
+#else
+#	echo "php-fpm already installed"
+#fi
 
 if [ $WP_EFS == "fs" ]; then
 
 	while [ 1 ]
 	do
 		echo 
-		read -e mpdir "Please enter mount path to get WP files from EFS"
+		"Please enter mount path to get WP files from EFS"
+		read -e mpdir
 		echo "Please enter EFS url (press Enter for existing EFS url)"
 		read -e EFS_ENDPOINT
 		EFS_ENDPOINT="${EFS_ENDPOINT:-fs-7ea24b07.efs.us-east-2.amazonaws.com}"
@@ -274,10 +293,12 @@ if [ $WP_EFS == "fs" ]; then
 	echo "$EFS_ENDPOINT:/ $mpdir nfs4 nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 0 0" >> /etc/fstab
 	mount -a -t nfs4
 	#symoblic link sot to mount folder
+	rm -rf /var/www/
 	mkdir -p /var/www/
 	sudo ln -s $mpdir /var/www/html
 
 else
+	if [ $WP_EFS == "local" ]; then
 
 #Installing wordpresss locally
 
@@ -291,11 +312,12 @@ else
 	tar -zxf latest.tar.gz
 	#move /wordpress/* files to  var/www/html
 	echo "Moving..."
+	mkdir -p /var/www/html
 	mv wordpress/* /var/www/html
 	echo "Configuring..."
 	#create wp config
 	mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
-
+	fi
 fi
 
 
@@ -343,13 +365,16 @@ while [ 1 ]
 	        if [ $? != "0" ]; then
 			echo "[Error]: Database creation failed. Aborting."
 			exit 1
-		fi
-        fi
-else
+			fi
+    fi
+fi
+	
+if [ "$MYSQL" == "rds" ]; then
+
 	echo "Please enter RDS url or Enter for existing RDS URL"
 	read -e RDS_URL
 	RDS_URL=${RDS_URL:-ozzydb.cr4vntkeippl.us-east-2.rds.amazonaws.com}
-	sed -e "s/localhost/$RDS_URL/g" /var/www/http/wp-config.php
+	sed -e "s/localhost/$RDS_URL/g" /var/www/html/wp-config.php
 	echo "WP Database Name: "
 	read -e DBNAME_RDS
 	echo "WP Database User: "
@@ -357,12 +382,13 @@ else
 	echo "WP Database Password: "
 	read -s DBPASS_RDS
 	#set database details with perl find and replace
-	sed -e "s/database_name_here/$DBNAME_RDS/g" /var/www/http/wp-config.php
-	sed -e "s/username_here/$DBUSER_RDS/g" /var/www/http/wp-config.php
-	sed "s/password_here/$DBPASS_RDS/g" /var/www/http/wp-config.php
+	sed -e "s/database_name_here/$DBNAME_RDS/g" /var/www/html/wp-config.php
+	sed -e "s/username_here/$DBUSER_RDS/g" /var/www/html/wp-config.php
+	sed "s/password_here/$DBPASS_RDS/g" /var/www/html/wp-config.php
+
 fi
 
-if [[ $LOGZ_IO == "y" ]]; then
+if [[ $LOGZ_IO == "logz.io" ]]; then
 		echo "Please insert LOGZ.IO token Enter for existing token"
 		read -e LOGZ_IO_TOKEN
 		LOGZ_IO_TOKEN=${LOGZ_IO_TOKEN:-xvEpuAbRseXfkrQqwUuJfTRBSeSGVcxA}
@@ -374,41 +400,43 @@ if [[ $LOGZ_IO == "y" ]]; then
 		#sudo cp COMODORSADomainValidationSecureServerCA.crt /etc/pki/tls/certs/
 		mv -v /etc/filebeat/filebeat.yml /etc/filebeat/filebeat_original.yml
 
-		cat > /etc/filebeat/filebeat.yml << EOF
-		############################# Filebeat #####################################
-		filebeat:
-		  prospectors:
-		    -
-		      paths:
-		        - <ACCESS_PATH>
-		      fields:
-		        logzio_codec: plain
-		        token:<TOKEN>
-		      fields_under_root: true
-		      ignore_older: 3h
-		      document_type: <DOC_TYPE_ACCESS>
-		    -
-		      paths:
-		        - <ERROR_PATH>
-		      fields:
-		        logzio_codec: plain
-		        token:<TOKEN>
-		      fields_under_root: true
-		      ignore_older: 3h
-		      document_type: <DOC_TYPE_ERROR>
-		  registry_file: /var/lib/filebeat/registry
-		############################# Output ##########################################
-		output:
-		  logstash:
-		    hosts: ["listener.logz.io:5015"]
-			
-		########  The below configuration is used for Filebeat 5.0 or higher
-		    ssl:
-		      certificate_authorities: ['/etc/pki/tls/certs/COMODORSADomainValidationSecureServerCA.crt']
+#		cat > /etc/filebeat/filebeat.yml <<"EOF"
+#		############################# Filebeat #####################################
+#		filebeat:
+#		  prospectors:
+#		    -
+#		      paths:
+#		        - <ACCESS_PATH>
+#		      fields:
+#		        logzio_codec: plain
+#		        token:<TOKEN>
+#		      fields_under_root: true
+#		      ignore_older: 3h
+#		      document_type: <DOC_TYPE_ACCESS>
+#		    -
+#		      paths:
+#		        - <ERROR_PATH>
+#		      fields:
+#		        logzio_codec: plain
+#		        token:<TOKEN>
+#		      fields_under_root: true
+#		      ignore_older: 3h
+#		      document_type: <DOC_TYPE_ERROR>
+#		  registry_file: /var/lib/filebeat/registry
+#		############################# Output ##########################################
+#		output:
+#		  logstash:
+#		    hosts: ["listener.logz.io:5015"]
+#			
+#		########  The below configuration is used for Filebeat 5.0 or higher
+#		    ssl:
+#		      certificate_authorities: ['/etc/pki/tls/certs/COMODORSADomainValidationSecureServerCA.crt']
 
+#EOF	
 
-EOF			  			  
-if [ "$WP_SERVER_CHECK" == "apache" ]; then
+fi
+		  			  
+if [[ "$WP_SERVER_CHECK" == "apache" ]] && [[ $LOGZ_IO == "logz.io" ]]; then 
 
 			#EDIT FILEBEAT CONF FILE - /etc/filebeat/filebeat.yml - nginx Log			  
 	sed -ie "s/<ACCESS_PATH>/ \/var\/log\/apache2\/access\.log /g" /etc/filebeat/filebeat.yml
@@ -418,6 +446,8 @@ if [ "$WP_SERVER_CHECK" == "apache" ]; then
 	sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml
 	sed -ie "s/<DOC_TYPE_ERROR>/apache_error/g" /etc/filebeat/filebeat.yml 	  		
 else
+	if [[ "$WP_SERVER_CHECK" == "nginx" ]] && [[ $LOGZ_IO == "logz.io" ]]; then 
+
 	sed -ie "s/<ACCESS_PATH>/ \/var/log/nginx/error.log /g" /etc/filebeat/filebeat.yml
 	sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml 
 	sed -ie "s/<DOC_TYPE_ACCESS>/nginx-access/g" /etc/filebeat/filebeat.yml 	  
@@ -425,10 +455,6 @@ else
 	sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml
 	sed -ie "s/<DOC_TYPE_ERROR>/nginx-error/g" /etc/filebeat/filebeat.yml 	
 fi
-
-if [[ $LOGZ_IO == "n" ]]; then
-	
-        echo "Ok, installation will continue without Logz.IO"
 
 
 
@@ -442,6 +468,4 @@ if [[ $DATA_DOG == "y" ]]; then
 else
 	echo "Ok, installation will continue without DataDog"
     echo "Ready, go to http://<your ec2 url>/blog and enter the blog info to finish the WP installation."
-fi
-
 fi
