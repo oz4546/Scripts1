@@ -167,7 +167,7 @@ if [[ $WP_SERVER_CHECK == "nginx" ]]; then # && [[ ! -f "/etc/init.d/nginx" ]] ;
 
 		     # NEED TO EDIT CONF FILES PHP-FPM
 		mv -v /etc/php-fpm.d/www.conf /etc/php-fpm.d/www.conf_original
-cat > /etc/php-fpm.d/www.conf <<EOF
+cat > /etc/php-fpm.d/www.conf <<"EOF"
 [www]
 listen = /var/run/php-fpm/php-fpm.sock
 listen.owner = nginx
@@ -175,13 +175,22 @@ listen.group = nginx
 listen.mode = 0664
 user = nginx
 group = nginx
+listen = 127.0.0.1:9000
+listen.allowed_clients = 127.0.0.1
+pm = dynamic
+pm.max_children = 50
+pm.start_servers = 5
+pm.min_spare_servers = 5
+pm.max_spare_servers = 35
+slowlog = /var/log/php-fpm/www-slow.log
+
 EOF
 
 		#else
 		#	echo "php-fpm already installed"
 		mv -v /etc/nginx/nginx.conf /etc/nginx/nginx-original.conf
 
-cat > /etc/nginx/nginx.conf <<EOF
+cat > /etc/nginx/nginx.conf <<"EOF"
 		
 user nginx;
 worker_processes auto;
@@ -247,6 +256,9 @@ EOF
 #	else
 #		echo "nginx already installed"
 
+	service nginx restart
+	service php-fpm restart
+
 fi
 
 
@@ -297,8 +309,9 @@ if [ $WP_EFS == "fs" ]; then
 	mkdir -p /var/www/
 	sudo ln -s $mpdir /var/www/html
 
-else
-	if [ $WP_EFS == "local" ]; then
+fi
+
+if [ $WP_EFS == "local" ]; then
 
 #Installing wordpresss locally
 
@@ -317,7 +330,7 @@ else
 	echo "Configuring..."
 	#create wp config
 	mv /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
-	fi
+	
 fi
 
 
