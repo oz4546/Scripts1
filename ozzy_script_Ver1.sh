@@ -283,7 +283,7 @@ fi
 #	echo "php-fpm already installed"
 #fi
 
-if [ $WP_EFS == "fs" ]; then
+if [[ $WP_EFS == "fs" ]]; then
 
 	while [ 1 ]
 	do
@@ -311,7 +311,7 @@ if [ $WP_EFS == "fs" ]; then
 
 fi
 
-if [ $WP_EFS == "local" ]; then
+if [[ $WP_EFS == "local" ]]; then
 
 #Installing wordpresss locally
 
@@ -334,7 +334,7 @@ if [ $WP_EFS == "local" ]; then
 fi
 
 
-if [ "$MYSQL" == "local" ]; then
+if [[ $WP_MY_SQL == "local" ]]; then
 	echo "Installing MYSQL locally...."
 	yum install -y mysql55-server php56-mysqlnd
 	sudo service mysqld start
@@ -382,22 +382,25 @@ while [ 1 ]
     fi
 fi
 	
-if [ "$MYSQL" == "rds" ]; then
+if [[ $WP_MY_SQL == "rds" ]]; then
 
 	echo "Please enter RDS url or Enter for existing RDS URL"
 	read -e RDS_URL
 	RDS_URL=${RDS_URL:-ozzydb.cr4vntkeippl.us-east-2.rds.amazonaws.com}
-	sed -e "s/localhost/$RDS_URL/g" /var/www/html/wp-config.php
-	echo "WP Database Name: "
+	echo "Insert WP Database Name: or Enter for exisiting "
 	read -e DBNAME_RDS
-	echo "WP Database User: "
+	DBNAME_RDS=${DBNAME_RDS:-wordpress-db}
+	echo "Insert WP Database User: or Enter for exisiting "
 	read -e DBUSER_RDS
-	echo "WP Database Password: "
+	DBUSER_RDS=${DBUSER_RDS:-oz4546}
+	echo "Insert WP Database Password: or Enter for exisiting "
 	read -s DBPASS_RDS
+	DBPASS_RDS=${DBPASS_RDS:-301100236}
 	#set database details with perl find and replace
-	sed -e "s/database_name_here/$DBNAME_RDS/g" /var/www/html/wp-config.php
-	sed -e "s/username_here/$DBUSER_RDS/g" /var/www/html/wp-config.php
-	sed "s/password_here/$DBPASS_RDS/g" /var/www/html/wp-config.php
+	sed -ie "s/localhost/$RDS_URL/g" /var/www/html/wp-config.php
+	sed -ie "s/database_name_here/$DBNAME_RDS/g" /var/www/html/wp-config.php
+	sed -ie "s/username_here/$DBUSER_RDS/g" /var/www/html/wp-config.php
+	sed -ie "s/password_here/$DBPASS_RDS/g" /var/www/html/wp-config.php
 
 fi
 
@@ -457,9 +460,12 @@ if [[ "$WP_SERVER_CHECK" == "apache" ]] && [[ $LOGZ_IO == "logz.io" ]]; then
 	sed -ie "s/<DOC_TYPE_ACCESS>/apache/g" /etc/filebeat/filebeat.yml 	  
 	sed -ie "s/<ERROR_PATH>//var/log/apache2/error.log/g" /etc/filebeat/filebeat.yml 	  
 	sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml
-	sed -ie "s/<DOC_TYPE_ERROR>/apache_error/g" /etc/filebeat/filebeat.yml 	  		
-else
-	if [[ "$WP_SERVER_CHECK" == "nginx" ]] && [[ $LOGZ_IO == "logz.io" ]]; then 
+	sed -ie "s/<DOC_TYPE_ERROR>/apache_error/g" /etc/filebeat/filebeat.yml 	 
+	
+fi
+ 		
+
+if [[ "$WP_SERVER_CHECK" == "nginx" ]] && [[ $LOGZ_IO == "logz.io" ]]; then 
 
 	sed -ie "s/<ACCESS_PATH>/ \/var/log/nginx/error.log /g" /etc/filebeat/filebeat.yml
 	sed -ie "s/<TOKEN>/$LOGZ_IO_TOKEN/g" /etc/filebeat/filebeat.yml 
