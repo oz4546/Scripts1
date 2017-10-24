@@ -336,14 +336,16 @@ fi
 
 if [[ $WP_MY_SQL == "local" ]]; then
 	echo "Installing MYSQL locally...."
-	yum install -y mysql55-server php56-mysqlnd
+#	yum install -y mysql55-server php56-mysqlnd
+	yum install -y mysql mysql-server
+
 	sudo service mysqld start
 	sudo chkconfig mysqld on
 
-	echo "MySQL Admin User: "
-	read -e mysqluser
-	echo "MySQL Admin Password: "
-	read -es mysqlpass
+#	echo "MySQL Admin User: "
+#	read -e mysqluser
+#	echo "MySQL Admin Password: "
+#	read -es mysqlpass
 	echo 'MySQL Host (Enter for default "localhost"):'
 	read -e mysqlhost
 	mysqlhost=${mysqlhost:-localhost}
@@ -374,11 +376,16 @@ while [ 1 ]
 	        echo "Setting up the database."
 		#login to MySQL, add database, add user and grant permissions
 		dbsetup="create database $dbname;GRANT ALL PRIVILEGES ON $dbname.* TO $dbuser@$mysqlhost IDENTIFIED BY '$dbpass';FLUSH PRIVILEGES;"
-		mysql -u $mysqluser -p$mysqlpass -e "$dbsetup"
+		mysql -u root -e "$dbsetup"
 	        if [ $? != "0" ]; then
 			echo "[Error]: Database creation failed. Aborting."
 			exit 1
 			fi
+			#set database details with perl find and replace
+		sed -ie "s/localhost/$mysqlhost/g" /var/www/html/wp-config.php
+		sed -ie "s/database_name_here/$dbname/g" /var/www/html/wp-config.php
+		sed -ie "s/username_here/$dbuser/g" /var/www/html/wp-config.php
+		sed -ie "s/password_here/$dbpass/g" /var/www/html/wp-config.php
     fi
 fi
 	
