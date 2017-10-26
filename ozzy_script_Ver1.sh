@@ -10,6 +10,7 @@ fi
 #RESULT=$(decision "y" "n")
 #RETURN_VALUE=$?
 
+
 # decision - input: $1 variable name, $2 first value, $3 second value
 function decision {	
 
@@ -52,6 +53,71 @@ else
 fi
 	
 }
+
+while getopts ":w:m:f:l:d:" opt; do
+  case $opt in
+   w)
+      echo "-w - WebServer was triggered, Parameter: $OPTARG" >&2
+      WEBSERVER_OPT="$OPTARG"
+      ;;	
+	  
+  m)
+   	echo "-m - MYSQL was triggered, Parameter: $OPTARG" >&2
+    MYSQL_OPT="$OPTARG"
+    ;;	
+	
+ f)
+	 
+ 	echo "-f - WP installation was triggered, Parameter: $OPTARG" >&2
+    WP_OPT="$OPTARG"
+
+ 	 ;;	
+  
+ l)
+	 
+ 	 echo "-l - Logz.IO installation was triggered, Parameter: $OPTARG" >&2
+     LOGZ_OPT="$OPTARG"
+
+ 	 ;;	
+  
+ d)
+ 	 echo "-d - Datadog installation was triggered, Parameter: $OPTARG" >&2
+     DD_OPT="$OPTARG"
+
+ 	 ;;	
+    
+    	
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ $WEBSERVER_OPT != "apache" || $WEBSERVER_OPT != "nginx" ]]; then	
+	WEBSERVER_OPT=$(decision "nginx" "apache")
+fi
+
+if [[ $MYSQL_OPT != "local" || $MYSQL_OPT != "rds" ]]; then	
+	MYSQL_OPT=$(decision "local" "rds")
+fi
+
+if [[ $WP_OPT != "fs" || $WP_OPT != "local" ]]; then	
+	WP_OPT=$(decision "fs" "local")
+fi
+
+if [[ $LOGZ_OPT != "fs" || $LOGZ_OPT!= "local" ]]; then	
+	LOGZ_OPT=$(decision "logz.io" "no logz")
+fi
+
+if [[ $DD_OPT!= "y" || $LDD_OPT != "n" ]]; then	
+	DD_OPT=$(decision "y" "n")
+fi
+
 
 
 echo "Would you like to install Apache Web Server (type 'apache') or Nginx Web Server (type 'nginx')?"
