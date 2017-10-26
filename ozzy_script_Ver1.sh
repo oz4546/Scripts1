@@ -7,6 +7,51 @@ if ! [[ $(id -u) == 0 ]]; then
    exit 1
 fi
 
+while getopts ":w:m:f:l:d:" opt; do
+  case $opt in
+   w)
+      echo "-w - WebServer was triggered, Parameter: $OPTARG" >&2
+      WEBSERVER_OPT="$OPTARG"
+      ;;	
+	  
+  m)
+   	echo "-m - MYSQL was triggered, Parameter: $OPTARG" >&2
+    MYSQL_OPT="$OPTARG"
+  
+    ;;	
+	
+ f)
+	 
+ 	echo "-f - WP installation was triggered, Parameter: $OPTARG" >&2
+    WP_OPT="$OPTARG"
+
+ 	 ;;	
+  
+ l)
+	 
+ 	 echo "-l - Logz.IO installation was triggered, Parameter: $OPTARG" >&2
+     LOGZ_OPT="$OPTARG"
+
+ 	 ;;	
+  
+ d)
+ 	 echo "-d - Datadog installation was triggered, Parameter: $OPTARG" >&2
+     DD_OPT="$OPTARG"
+
+ 	 ;;	
+    
+    	
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
 #RESULT=$(decision "y" "n")
 #RETURN_VALUE=$?
 
@@ -134,7 +179,6 @@ fi
 
 # lets yum update
 yum -y update
-
 #Checking if the chosen web server (apache/nginx)already installed
 if [[ "$WP_SERVER_CHECK" == "apache" ]]; then #&& [[ ! -f "/etc/init.d/httpd" ]]; then
 	echo "Installing APACHE...."
@@ -153,6 +197,8 @@ else
 	echo "Installing nginx or Apache already installed"
 
 fi
+
+
 
 if [[ $WP_SERVER_CHECK == "nginx" ]]; then # && [[ ! -f "/etc/init.d/nginx" ]] ; then
 
