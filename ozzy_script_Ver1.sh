@@ -7,54 +7,38 @@ if ! [[ $(id -u) == 0 ]]; then
    exit 1
 fi
 
-#RESULT=$(decision "y" "n")
-#RETURN_VALUE=$?
-
-
-# decision - input: $1 variable name, $2 first value, $3 second value
-function decision {	
-
+function decision_opt {	
 local USER_SENT_VARIABLE=$1
-#local TEMP_VARIABLE
+local TEMP_VARIABLE
 	while [ 1 ]
 	do
-		read -e TEMP_VARIABLE
-	    if  [[ $TEMP_VARIABLE == $1 ]] || [[ $TEMP_VARIABLE == $2 ]]; then
-#	        echo "Ok, input is valid"
-			echo -e "$TEMP_VARIABLE"
-			break	
+		
+	    if  [[ $TEMP_VARIABLE != $1 ]] || [[ $TEMP_VARIABLE != $2 ]]; then
+		echo $TEMP_VARIABLE
+			usage 
+			exit 1	
 	    else
-		    echo please choose valid option - $1 or $2 >&2
+		    echo paramters are valid - $1 or $2 >&2
+			break
 	    fi
 	done
 	#eval $USER_SENT_VARIABLE=$TEMP_VARIABLE
 	return 0
 }
 
-function check_db_user_pass {	
-
-if [[ "$1" =~ ^[A-Za-z0-9#$+*]{8,}$ ]]; then
-    echo "Pass is valid"
-	break
-else
-    echo "Pass is invalid"
-fi
-	
+function usage {
+	echo
+"Usage: 
+   -w   Webserver flage - choose nginx/apache
+   -m   MYSQL flag - choose rds / local
+   -f   FS flag - where WP will be installed? choose fs / local
+   -l   Logz.IO flag - choose 'logz.io' / 'no logz'
+   -d 	Datadog flag - choose 'y' / 'n' 
+   -i  Interactive script flag - choose 'y' / 'n' "
 }
 
-function path_check {	
 
-if [[ -d "$1" ]] && [[ $1 =~ ^[A-Za-z0-9#$+*]{2,}$ ]]; then
-	echo "Ok, input is valid"
-	return	0	
-else
-	echo "please enter valid path ...."
-	return 1
-fi
-	
-}
-
-while getopts ":w:m:f:l:d:" opt; do
+while getopts ":w:m:f:l:d:i:" opt; do
   case $opt in
    w)
       echo "-w - WebServer was triggered, Parameter: $OPTARG" >&2
@@ -86,7 +70,11 @@ while getopts ":w:m:f:l:d:" opt; do
 
  	 ;;	
     
-    	
+ i)
+ 	 echo "-i - Intercative script was triggered, Parameter: $OPTARG" >&2
+    INTERACTIVE_OPT="$OPTARG"
+ 	 ;;	
+	    	
     \?)
       echo "Invalid option: -$OPTARG" >&2
       exit 1
@@ -98,27 +86,7 @@ while getopts ":w:m:f:l:d:" opt; do
   esac
 done
 
-if [[ $WEBSERVER_OPT != "apache" || $WEBSERVER_OPT != "nginx" ]]; then	
-	WEBSERVER_OPT=$(decision "nginx" "apache")
-fi
-
-if [[ $MYSQL_OPT != "local" || $MYSQL_OPT != "rds" ]]; then	
-	MYSQL_OPT=$(decision "local" "rds")
-fi
-
-if [[ $WP_OPT != "fs" || $WP_OPT != "local" ]]; then	
-	WP_OPT=$(decision "fs" "local")
-fi
-
-if [[ $LOGZ_OPT != "fs" || $LOGZ_OPT!= "local" ]]; then	
-	LOGZ_OPT=$(decision "logz.io" "no logz")
-fi
-
-if [[ $DD_OPT!= "y" || $LDD_OPT != "n" ]]; then	
-	DD_OPT=$(decision "y" "n")
-fi
-
-
+function interactive {	
 
 echo "Would you like to install Apache Web Server (type 'apache') or Nginx Web Server (type 'nginx')?"
 WP_SERVER_CHECK=$(decision "nginx" "apache")
@@ -561,3 +529,77 @@ else
 	echo "Ok, installation will continue without DataDog"
     echo "Ready, go to http://<your ec2 url>/blog and enter the blog info to finish the WP installation."
 fi
+}
+
+
+WEBSERVER_OPT=$(decision_opt "nginx" "apache")
+
+MYSQL_OPT=$(decision_opt "local" "rds")
+
+WP_OPT=$(decision_opt "fs" "local")
+
+LOGZ_OPT=$(decision_opt "logz.io" "no logz")
+
+DD_OPT=$(decision_opt "y" "n")
+
+INTERACTIVE_OPT=$(decision_opt "y" "n")
+
+if [[ $INTERACTIVE_OPT == "y" ]]; then
+	intercative
+fi
+
+
+
+
+
+
+
+# 
+function decision {	
+local USER_SENT_VARIABLE=$1
+#local TEMP_VARIABLE
+	while [ 1 ]
+	do
+		read -e TEMP_VARIABLE
+	    if  [[ $TEMP_VARIABLE == $1 ]] || [[ $TEMP_VARIABLE == $2 ]]; then
+#	        echo "Ok, input is valid"
+			echo -e "$TEMP_VARIABLE"
+			break	
+	    else
+		    echo please choose valid option - $1 or $2 >&2
+	    fi
+	done
+	#eval $USER_SENT_VARIABLE=$TEMP_VARIABLE
+	return 0
+}
+
+
+
+
+
+function check_db_user_pass {	
+
+if [[ "$1" =~ ^[A-Za-z0-9#$+*]{8,}$ ]]; then
+    echo "Pass is valid"
+	break
+else
+    echo "Pass is invalid"
+fi
+	
+}
+
+function path_check {	
+
+if [[ -d "$1" ]] && [[ $1 =~ ^[A-Za-z0-9#$+*]{2,}$ ]]; then
+	echo "Ok, input is valid"
+	return	0	
+else
+	echo "please enter valid path ...."
+	return 1
+fi
+	
+}
+
+
+
+
